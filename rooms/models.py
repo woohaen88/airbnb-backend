@@ -59,5 +59,8 @@ class Amenity(CommonModel):
         blank=True,
     )
 
+    class Meta:
+        verbose_name_plural = "amenities"
+
     def __str__(self):
         return self.name
