@@ -58,3 +58,6 @@ class Amenity(CommonModel):
         null=True,
         blank=True,
     )
+
+    def __str__(self):
+        return self.name
