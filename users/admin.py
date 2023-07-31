@@ -11,10 +11,9 @@ class UserAdmin(UserAdmin):
             {
                 "fields": [
                     "avatar",
-                    "username",
+                    "email",
                     "password",
                     "name",
-                    "email",
                     "is_host",
                     "gender",
                     "language",
@@ -49,7 +48,6 @@ class UserAdmin(UserAdmin):
     ]
 
     list_display = (
-        "username",
         "email",
         "name",
         "is_host",
