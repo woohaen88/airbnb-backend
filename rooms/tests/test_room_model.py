@@ -1,5 +1,5 @@
 from django.db import IntegrityError
-from django.test import TestCase, TransactionTestCase
+from django.test import TransactionTestCase
 from rooms.models import Room, Amenity
 from django.contrib.auth import get_user_model
 

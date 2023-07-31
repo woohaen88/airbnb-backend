@@ -77,3 +77,6 @@ class User(AbstractUser):
         max_length=3,
         choices=CurrencyChoices.choices,
     )
+
+    def __str__(self):
+        return self.name
