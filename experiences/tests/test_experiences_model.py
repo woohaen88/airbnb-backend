@@ -12,6 +12,7 @@ class ExperiencesTest(TestCase):
     3. experience모델 object는 name과 같아야함 [v]
     4. perk모델 object는 name과 같아야함 [v]
     5. experience모델과 perk모델은 MtoM으로 연결되어야함 [v]
+    6. categories 속성이 존재하는가? [v]
     """
 
     def setUp(self) -> None:
@@ -86,3 +87,12 @@ class ExperiencesTest(TestCase):
                 host=self.user,
                 **experiences_defaults_copy,
             )
+
+    def test_category_isin_experiences(self):
+        experiences_defaults_copy = self.experiences_defaults.copy()
+        experience = Experience.objects.create(
+            host=self.user,
+            **experiences_defaults_copy,
+        )
+
+        self.assertTrue(hasattr(experience, "category"))

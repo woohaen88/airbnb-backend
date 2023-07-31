@@ -5,6 +5,11 @@ from django.contrib.auth import get_user_model
 
 
 class RoomsTest(TransactionTestCase):
+    """
+    TODO:
+    1. categories 속성이 존재하는가? [v]
+    """
+
     def setUp(self) -> None:
         self.user = get_user_model().objects.create_user(
             "test@example.com", "test123!@#"
@@ -76,3 +81,11 @@ class RoomsTest(TransactionTestCase):
     #             owner=self.user,
     #             **copy_param,
     #         )
+
+    def test_category_isin_experiences(self):
+        room = Room.objects.create(
+            owner=self.user,
+            **self.defaults,
+        )
+
+        self.assertTrue(hasattr(room, "category"))
