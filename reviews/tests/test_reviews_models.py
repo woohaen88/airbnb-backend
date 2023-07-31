@@ -1,9 +1,5 @@
 from django.test import TestCase
-from common.utils import (
-    create_user,
-    create_room,
-    create_experience,
-)
+from common.utils import DefaultObjectCreate
 from reviews.models import Review
 
 
@@ -16,9 +12,10 @@ class ReviewTest(TestCase):
     """
 
     def setUp(self) -> None:
-        self.user = create_user()
-        self.room = create_room(owner=self.user)
-        self.experience = create_experience(host=self.user)
+        defaultObjectCreate = DefaultObjectCreate()
+        self.user = defaultObjectCreate.create_user()
+        self.room = defaultObjectCreate.create_room(owner=self.user)
+        self.experience = defaultObjectCreate.create_experience(host=self.user)
 
     def create_reviews_model(self):
         review = Review.objects.create(
