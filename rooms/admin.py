@@ -7,6 +7,7 @@ from rooms.models import Room, Amenity
 class RoomAdmin(admin.ModelAdmin):
     list_display = (
         "title",
+        "total_amenities",
         "price",
         "kind",
         "owner",

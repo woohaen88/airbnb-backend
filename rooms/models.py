@@ -54,6 +54,9 @@ class Room(CommonModel):
         on_delete=models.SET_NULL,
     )
 
+    def total_amenities(self):
+        return self.amenities.count()
+
     def __str__(self):
         return self.title
 
