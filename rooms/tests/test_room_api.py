@@ -96,11 +96,15 @@ class PrivateRoomAPisTest(TestCase):
         """2. POST /rooms -> rooms 생성"""
         payload = self.default_object_create.room_defaults.copy()
         self.default_object_create.create_category(kind="rooms")
+        self.default_object_create.create_amenity()
 
         payload.update({"category": 1})
+        payload.update({"amenities": [1]})
+        print(payload)
 
         # check status code
         res = self.client.post(ROOM_URL, payload)
+        print(res.data)
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
 
         # check data

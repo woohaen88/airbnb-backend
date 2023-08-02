@@ -23,6 +23,7 @@ from rooms.serializers import (
     RoomDetailSerializer,
     RoomListSerializer,
 )
+from config.permissions.decorators import authentication_required
 
 
 class Amenities(APIView):
@@ -80,13 +81,12 @@ class AmenityDetail(APIView):
 
 
 class Rooms(APIView):
-    # permission_classes = [IsAuthenticatedOrReadOnly]
-
     def get(self, request: Request):
         rooms = Room.objects.all()
         serializer = RoomListSerializer(rooms, many=True)
         return Response(serializer.data)
 
+    @authentication_required
     def post(self, request: Request):
         if not request.user.is_authenticated:
             return Response(
@@ -112,25 +112,36 @@ class Rooms(APIView):
                     room = serializer.save(
                         owner=request.user,
                         category=category,
+                        amenities=[],
                     )
 
                     # amenities
-                    amenities = request.data.get("amenities")
-                    for amenity_id in amenities:
-                        amenity = Amenity.objects.get(id=amenity_id)
-                        room.amenities.add(amenity)
-                    serializer = RoomDetailSerializer(room)
+                    amenities = request.data.get("amenities", [])
+
+                    if amenities:  # amenities 입력값이 존재
+                        for amenity_id in amenities:
+                            amenity = Amenity.objects.get(id=amenity_id)
+                            room.amenities.add(amenity)
+
+                        serializer = RoomDetailSerializer(room)
+
+                        return Response(
+                            serializer.data,
+                            status=status.HTTP_201_CREATED,
+                        )
+
                     return Response(
                         serializer.data,
                         status=status.HTTP_201_CREATED,
                     )
+
             except Exception:
                 raise ParseError("Amenity not found")
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class RoomDetail(APIView):
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
 
     def get_object(self, room_id: int):
         try:
@@ -151,12 +162,8 @@ class RoomDetail(APIView):
             return Response(RoomDetailSerializer(room).data)
         return Response(serializer.errors)
 
+    @authentication_required
     def delete(self, request: Request, room_id: int):
         room = self.get_object(room_id)
-        # if not request.user.is_authenticated:
-        #     raise NotAuthenticated
-        #
-        # if room.owner != request.user:
-        #     raise PermissionDenied
         room.delete()
         return Response(status.HTTP_204_NO_CONTENT)

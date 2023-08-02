@@ -39,7 +39,10 @@ class Room(CommonModel):
         on_delete=models.CASCADE,
     )
 
-    amenities = models.ManyToManyField("rooms.Amenity")
+    amenities = models.ManyToManyField(
+        "rooms.Amenity",
+        blank=True,
+    )
     created_at = models.DateTimeField(
         auto_now_add=True,
     )
