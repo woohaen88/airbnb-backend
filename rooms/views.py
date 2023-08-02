@@ -13,7 +13,7 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.serializers import Serializer
 from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
 
 
 from categories.models import Category
@@ -130,6 +130,8 @@ class Rooms(APIView):
 
 
 class RoomDetail(APIView):
+    permission_classes = [IsAuthenticated]
+
     def get_object(self, room_id: int):
         try:
             return Room.objects.get(id=room_id)
@@ -151,10 +153,10 @@ class RoomDetail(APIView):
 
     def delete(self, request: Request, room_id: int):
         room = self.get_object(room_id)
-        if not request.user.is_authenticated:
-            raise NotAuthenticated
-
-        if room.owner != request.user:
-            raise PermissionDenied
+        # if not request.user.is_authenticated:
+        #     raise NotAuthenticated
+        #
+        # if room.owner != request.user:
+        #     raise PermissionDenied
         room.delete()
         return Response(status.HTTP_204_NO_CONTENT)

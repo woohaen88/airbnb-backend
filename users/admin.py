@@ -13,7 +13,7 @@ class UserAdmin(UserAdmin):
                     "avatar",
                     "email",
                     "password",
-                    "name",
+                    "username",
                     "is_host",
                     "gender",
                     "language",
@@ -49,6 +49,6 @@ class UserAdmin(UserAdmin):
 
     list_display = (
         "email",
-        "name",
+        "username",
         "is_host",
     )

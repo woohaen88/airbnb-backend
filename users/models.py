@@ -11,7 +11,11 @@ class UserManager(BaseUserManager):
             name = email.split("@")[0]
         else:
             name = extra_field.pop("name")
-        user = self.model(email=self.normalize_email(email), name=name, **extra_field)
+        user = self.model(
+            email=self.normalize_email(email),
+            username=name,
+            **extra_field,
+        )
         user.set_password(password)
         user.save(using=self._db)
         return user
@@ -55,7 +59,7 @@ class User(AbstractUser):
         max_length=150,
         editable=False,
     )
-    name = models.CharField(
+    username = models.CharField(
         max_length=150,
     )
     is_host = models.BooleanField(

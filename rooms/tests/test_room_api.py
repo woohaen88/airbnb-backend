@@ -5,7 +5,7 @@ from django.urls import reverse
 from rest_framework.test import APIClient
 from rest_framework import status
 
-from common.utils import DefaultObjectCreate
+from common.utils import DefaultObjectCreate, create_user
 from rooms.models import Room
 from rooms.serializers import RoomListSerializer, RoomDetailSerializer
 
@@ -39,12 +39,19 @@ class PublicRoomAPisTest(TestCase):
 
     def test_delete_room_other_user_raise_error(self):
         """인증된 다른 유저가 room을 삭제할때 403 error 발생"""
-        user1 = get_user_model().objects.create_user("user@example.com", "test123!@#")
+        user1 = create_user(email="testuser@example.com", password="test2231")
+        user2 = create_user(email="user2@example.com", password="test123!@#")
+
+        self.client.force_login(user2)
+
+        # user1, room 생성
         room = self.default_object_create.create_room(owner=user1)
         url = room_detail_url(room.id)
         res = self.client.delete(url)
 
-        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
+        # call API
+        self.client.delete(url)
+        self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
 
 
 class PrivateRoomAPisTest(TestCase):
