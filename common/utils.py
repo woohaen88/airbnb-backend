@@ -2,8 +2,13 @@ import django.db.utils
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 
+from categories.models import Category
 from experiences.models import Experience, Perk
 from rooms.models import Room, Amenity
+
+
+def create_user(**kwargs):
+    return get_user_model().objects.create_user(**kwargs)
 
 
 class DefaultObjectCreate:
@@ -33,8 +38,25 @@ class DefaultObjectCreate:
             description="description",
             address="address",
             pet_friendly=True,
-            kind="entire_place",
+            kind=Room.KindChoices.SHARED_ROOM,
         )
+
+        self.category_defaults = {
+            "name": "category1",
+            "kind": Category.KindCategoryChoices.ROOMS,
+        }
+
+    def create_category(self, kind=None, **kwargs):
+        category_kwargs = self.category_defaults.copy()
+        category_kwargs.update(kwargs)
+        if kind == "rooms":
+            category_kwargs.update({"kind": Category.KindCategoryChoices.ROOMS})
+        elif kind == "experiences":
+            category_kwargs.update({"kind": Category.KindCategoryChoices.EXPERIENCES})
+        else:
+            raise ValueError("kind: rooms나 experiences여야함")
+
+        return Category.objects.create(**category_kwargs)
 
     def create_user(self, email: str = None, password: str = None, *args, **kwargs):
         if email is None:
