@@ -45,18 +45,18 @@ class Amenities(APIView):
 class AmenityDetail(APIView):
     """/api/v1/rooms/amenities/1"""
 
-    def get_object(self, amenity_id: int) -> Any:
+    def get_object(self, amenity_id: int):
         try:
             return Amenity.objects.get(id=amenity_id)
         except Amenity.DoesNotExist:
             raise NotFound("해당 Amenity를 찾을 수 없습니다.")
 
-    def get(self, request: Request, amenity_id) -> Response:
+    def get(self, request: Request, amenity_id):
         amenity = self.get_object(amenity_id=amenity_id)
         serializer = AmenitySerializer(amenity)
         return Response(serializer.data)
 
-    def put(self, request: Request, amenity_id) -> Response:
+    def put(self, request: Request, amenity_id):
         amenity = self.get_object(amenity_id=amenity_id)
         serializer = AmenitySerializer(
             amenity,
@@ -68,7 +68,7 @@ class AmenityDetail(APIView):
             return Response(AmenitySerializer(amenity).data)
         return Response(serializer.errors)
 
-    def delete(self, request: Request, amenity_id) -> Response:
+    def delete(self, request: Request, amenity_id):
         amenity = self.get_object(amenity_id=amenity_id)
         amenity.delete()
         return Response(
@@ -80,14 +80,20 @@ class AmenityDetail(APIView):
 
 
 class Rooms(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    # permission_classes = [IsAuthenticatedOrReadOnly]
 
-    def get(self, request: Request) -> Response:
+    def get(self, request: Request):
         rooms = Room.objects.all()
         serializer = RoomListSerializer(rooms, many=True)
         return Response(serializer.data)
 
-    def post(self, request: Request) -> Response:
+    def post(self, request: Request):
+        if not request.user.is_authenticated:
+            return Response(
+                NotAuthenticated.default_detail,
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+
         serializer: Serializer = RoomDetailSerializer(data=request.data)
         if serializer.is_valid():
             # category validation
@@ -124,18 +130,18 @@ class Rooms(APIView):
 
 
 class RoomDetail(APIView):
-    def get_object(self, room_id: int) -> Any:
+    def get_object(self, room_id: int):
         try:
             return Room.objects.get(id=room_id)
         except Room.DoesNotExist:
             raise NotFound("해당 Room이 없습니다.")
 
-    def get(self, request: Request, room_id: int) -> Response:
+    def get(self, request: Request, room_id: int):
         room = self.get_object(room_id)
         serializer = RoomDetailSerializer(room)
         return Response(serializer.data)
 
-    def put(self, request: Request, room_id: int) -> Response:
+    def put(self, request: Request, room_id: int):
         room = self.get_object(room_id)
         serializer: Serializer = RoomDetailSerializer(room, data=request.data)
         if serializer.is_valid():
@@ -143,7 +149,7 @@ class RoomDetail(APIView):
             return Response(RoomDetailSerializer(room).data)
         return Response(serializer.errors)
 
-    def delete(self, request: Request, room_id: int) -> Response:
+    def delete(self, request: Request, room_id: int):
         room = self.get_object(room_id)
         if not request.user.is_authenticated:
             raise NotAuthenticated

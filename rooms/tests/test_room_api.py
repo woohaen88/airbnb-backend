@@ -12,30 +12,38 @@ from rooms.serializers import RoomListSerializer, RoomDetailSerializer
 ROOM_URL = reverse("rooms:room-list")
 
 
-def room_detail_url(room_id: int) -> str:
+def room_detail_url(room_id: int):
     return reverse("rooms:room-detail", args=(room_id,))
 
 
 class PublicRoomAPisTest(TestCase):
-    def setUp(self) -> None:
+    def setUp(self):
         self.default_object_create = DefaultObjectCreate()
         self.client = APIClient()
 
     def test_create_room_raise_error(self):
+        """인증되지 않은 유저가 room을 생성할때 401 error 발생"""
         payload = self.default_object_create.room_defaults.copy()
         res = self.client.post(ROOM_URL, payload)
 
-        # 401이어야 하는데 일단은 403으로 우회
-        self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_delete_room_raise_error(self):
+        """인증되지 않은 유저가 room을 삭제할때 401 error 발생"""
         user1 = get_user_model().objects.create_user("user@example.com", "test123!@#")
         room = self.default_object_create.create_room(owner=user1)
         url = room_detail_url(room.id)
-        res = self.client.delete(url, HTTP_WWW_Authenticate=True)
-        print(f"[headers]\n{res.headers}")
+        res = self.client.delete(url)
 
-        # 401이어야 하는데 일단은 403으로 우회
+        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_delete_room_other_user_raise_error(self):
+        """인증된 다른 유저가 room을 삭제할때 403 error 발생"""
+        user1 = get_user_model().objects.create_user("user@example.com", "test123!@#")
+        room = self.default_object_create.create_room(owner=user1)
+        url = room_detail_url(room.id)
+        res = self.client.delete(url)
+
         self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
 
 
@@ -49,7 +57,7 @@ class PrivateRoomAPisTest(TestCase):
     2. POST /rooms -> rooms 생성
     """
 
-    def setUp(self) -> None:
+    def setUp(self):
         self.default_object_create = DefaultObjectCreate()
         self.user = self.default_object_create.create_user()
         self.client = APIClient()
