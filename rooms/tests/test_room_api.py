@@ -62,6 +62,7 @@ class PrivateRoomAPisTest(TestCase):
         self.default_object_create = DefaultObjectCreate()
         self.user = self.default_object_create.create_user()
         self.client = APIClient()
+        self.client.force_authenticate(self.user)
         self.client.force_login(self.user)
 
     def test_get_rooms(self):
@@ -76,7 +77,7 @@ class PrivateRoomAPisTest(TestCase):
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
         # result: "id", "title", "country", "city", "price" 만조회
-        target_keys = {"id", "title", "country", "city", "price", "rating"}
+        target_keys = {"id", "title", "country", "city", "price", "rating", "is_owner"}
         for res_item in res.data:
             set_keys = set(res_item.keys())
             self.assertTrue(target_keys == set_keys)
@@ -109,7 +110,16 @@ class PrivateRoomAPisTest(TestCase):
         # check data
         room = Room.objects.get(id=res.data["id"])
         serializer = RoomDetailSerializer(room)
-        self.assertEqual(serializer.data, res.data)
+
+        # 동적 필드가 있으면 제외해야함
+        serializer_data = serializer.data
+        dynamic_fields = ["is_owner"]
+        for dynamic_field in dynamic_fields:
+            serializer_data.pop(dynamic_field)
+            is_owner_by_api = res.data.pop(dynamic_field)
+            self.assertTrue(is_owner_by_api)
+
+        self.assertEqual(serializer_data, res.data)
 
         # check authenticated user
         self.assertEqual(room.owner, self.user)
@@ -130,7 +140,16 @@ class PrivateRoomAPisTest(TestCase):
         # check data
         room = Room.objects.get(id=res.data["id"])
         serializer = RoomDetailSerializer(room)
-        self.assertEqual(serializer.data, res.data)
+
+        # 동적 필드가 있으면 제외해야함
+        serializer_data = serializer.data
+        dynamic_fields = ["is_owner"]
+        for dynamic_field in dynamic_fields:
+            serializer_data.pop(dynamic_field)
+            is_owner_by_api = res.data.pop(dynamic_field)
+            self.assertTrue(is_owner_by_api)
+
+        self.assertEqual(serializer_data, res.data)
 
         # check authenticated user
         self.assertEqual(room.owner, self.user)
@@ -219,7 +238,17 @@ class PrivateRoomAPisTest(TestCase):
         serializer = RoomDetailSerializer(room)
 
         self.assertEqual(payload["title"], room.title)
-        self.assertEqual(res.data, serializer.data)
+
+        # 동적 필드가 있으면 제외해야함
+        serializer_data = serializer.data
+
+        dynamic_fields = ["is_owner"]
+        for dynamic_field in dynamic_fields:
+            serializer_data.pop(dynamic_field)
+            is_owner_by_api = res.data.pop(dynamic_field)
+            self.assertTrue(is_owner_by_api)
+
+        self.assertEqual(serializer_data, res.data)
 
     def test_update_room_invalid_raise_error(self):
         """인증된 같은 유저가 invalid 값을 넣으면 400 error"""
