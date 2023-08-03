@@ -1,7 +1,4 @@
-from django.db import transaction
-from rest_framework import status
-from rest_framework.exceptions import ParseError
-from rest_framework.response import Response
+from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
 
 from rooms.models import Amenity, Room
@@ -21,6 +18,8 @@ class RoomDetailSerializer(ModelSerializer):
     amenities = AmenitySerializer(read_only=True, many=True, required=False)
     category = CategorySerializer(read_only=True)
 
+    rating = serializers.SerializerMethodField()
+
     class Meta:
         model = Room
         fields = "__all__"
@@ -28,8 +27,13 @@ class RoomDetailSerializer(ModelSerializer):
     def create(self, validated_data):
         return Room.objects.create(**validated_data)
 
+    def get_rating(self, room: Room):
+        return room.rating()
+
 
 class RoomListSerializer(ModelSerializer):
+    rating = serializers.SerializerMethodField()
+
     class Meta:
         model = Room
         fields = (
@@ -38,4 +42,8 @@ class RoomListSerializer(ModelSerializer):
             "country",
             "city",
             "price",
+            "rating",
         )
+
+    def get_rating(self, room: Room):
+        return room.rating()

@@ -76,7 +76,7 @@ class PrivateRoomAPisTest(TestCase):
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
         # result: "id", "title", "country", "city", "price" 만조회
-        target_keys = {"id", "title", "country", "city", "price"}
+        target_keys = {"id", "title", "country", "city", "price", "rating"}
         for res_item in res.data:
             set_keys = set(res_item.keys())
             self.assertTrue(target_keys == set_keys)
