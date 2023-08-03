@@ -119,11 +119,6 @@ class Rooms(APIView):
                         return Response(serializer.data, status=status.HTTP_201_CREATED)
                     serializer = RoomDetailSerializer(room)
                     return Response(serializer.data, status=status.HTTP_201_CREATED)
-            # except Exception:
-            #     return Response(
-            #         data=ParseError.default_detail,
-            #         status=status.HTTP_400_BAD_REQUEST,
-            #     )
             except Exception:
                 raise ParseError("Amenity not found")
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -143,13 +138,43 @@ class RoomDetail(APIView):
         serializer = RoomDetailSerializer(room)
         return Response(serializer.data)
 
+    @authentication_required
     def put(self, request: Request, room_id: int):
         room = self.get_object(room_id)
-        serializer: Serializer = RoomDetailSerializer(room, data=request.data)
+        serializer: Serializer = RoomDetailSerializer(
+            room,
+            data=request.data,
+            partial=True,
+        )
         if serializer.is_valid():
+            # category
+            category_id = request.data.get("category", None)
+
+            if category_id:
+                try:
+                    category = Category.objects.get(id=category_id)
+                    if category.kind != Category.KindCategoryChoices.ROOMS:
+                        raise ParseError("여기는 room 카테고리인데 experiences 카테고리를 입력했구려~")
+
+                except Category.DoesNotExist:
+                    raise ParseError(f"Category with {category_id} does not exists!!")
+
+            amenities = request.data.get("amenities", None)
+            if amenities:
+                try:
+                    with transaction.atomic():
+                        room = serializer.save()
+                        for amenity_id in amenities:
+                            amenity = Amenity.objects.get(id=amenity_id)
+                            room.amenities.add(amenity)
+                        serializer = RoomDetailSerializer(room)
+                        return Response(serializer.data, status=status.HTTP_200_OK)
+                except Exception:
+                    raise ParseError("Amenity not found!!!!!!!!!")
+
             room = serializer.save()
             return Response(RoomDetailSerializer(room).data)
-        return Response(serializer.errors)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @authentication_required
     def delete(self, request: Request, room_id: int):
