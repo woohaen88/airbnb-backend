@@ -7,7 +7,12 @@ app_name = "rooms"
 urlpatterns = [
     path(
         "",
-        views.Rooms.as_view(),
+        views.Rooms.as_view(
+            {
+                "get": "list",
+                "post": "create",
+            }
+        ),
         name="room-list",
     ),
     path(
