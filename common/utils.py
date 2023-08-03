@@ -4,6 +4,7 @@ from django.test import TestCase
 
 from categories.models import Category
 from experiences.models import Experience, Perk
+from reviews.models import Review
 from rooms.models import Room, Amenity
 
 
@@ -96,3 +97,20 @@ class DefaultObjectCreate:
 
     def create_amenity(self, *args, **kwargs):
         return Amenity.objects.create(**kwargs)
+
+    def create_review(
+        self,
+        user,
+        room,
+        experience,
+        *args,
+        **kwargs,
+    ):
+        """rating, payload"""
+        return Review.objects.create(
+            user=user,
+            room=room,
+            experience=experience,
+            *args,
+            **kwargs,
+        )

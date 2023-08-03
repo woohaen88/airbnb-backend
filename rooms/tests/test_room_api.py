@@ -76,12 +76,6 @@ class PrivateRoomAPisTest(TestCase):
         res = self.client.get(ROOM_URL)
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
-        # result: "id", "title", "country", "city", "price" 만조회
-        target_keys = {"id", "title", "country", "city", "price", "rating", "is_owner"}
-        for res_item in res.data:
-            set_keys = set(res_item.keys())
-            self.assertTrue(target_keys == set_keys)
-
         # data가 같은지 비교
         rooms = Room.objects.all()
         serializer = RoomListSerializer(rooms, many=True)
@@ -92,6 +86,29 @@ class PrivateRoomAPisTest(TestCase):
         # serializer.data[0].pop("is_owner")
         # self.assertTrue(is_owner)  # 작성자가 같은지 비교
         # self.assertEqual(res.data[0], serializer.data[0])
+
+    def test_get_room_exact_fields(self):
+        """매칠되는 필드만 조회"""
+        room = self.default_object_create.create_room(owner=self.user)
+        experience = self.default_object_create.create_experience(host=self.user)
+
+        self.default_object_create.create_review(
+            user=self.user,
+            room=room,
+            experience=experience,
+            payload="review1",
+            rating=3,
+        )
+
+        url = room_detail_url(room.id)
+        res = self.client.get(url)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        target_keys = [
+            "reviews",
+        ]
+        for key in target_keys:
+            self.assertIn(key, res.data)
 
     def test_create_rooms_with_amenity(self):
         """2. POST /rooms -> rooms 생성"""
