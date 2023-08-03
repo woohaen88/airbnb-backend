@@ -92,19 +92,18 @@ class PrivateRoomAPisTest(TestCase):
         serializer = RoomListSerializer(rooms, many=True)
         self.assertEqual(res.data, serializer.data)
 
-    def test_create_rooms(self):
+    def test_create_rooms_with_amenity(self):
         """2. POST /rooms -> rooms 생성"""
         payload = self.default_object_create.room_defaults.copy()
         self.default_object_create.create_category(kind="rooms")
-        self.default_object_create.create_amenity()
+        self.default_object_create.create_amenity(name="item1")
+        self.default_object_create.create_amenity(name="item2")
 
         payload.update({"category": 1})
-        payload.update({"amenities": [1]})
-        print(payload)
+        payload.update({"amenities": [1, 2]})
 
         # check status code
         res = self.client.post(ROOM_URL, payload)
-        print(res.data)
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
 
         # check data
@@ -114,6 +113,44 @@ class PrivateRoomAPisTest(TestCase):
 
         # check authenticated user
         self.assertEqual(room.owner, self.user)
+
+    def test_create_rooms_exclude_amenity(self):
+        """3. POST /rooms -> rooms 생성"""
+        payload = self.default_object_create.room_defaults.copy()
+        self.default_object_create.create_category(kind="rooms")
+        self.default_object_create.create_amenity(name="item1")
+        self.default_object_create.create_amenity(name="item2")
+
+        payload.update({"category": 1})
+
+        # check status code
+        res = self.client.post(ROOM_URL, payload)
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+
+        # check data
+        room = Room.objects.get(id=res.data["id"])
+        serializer = RoomDetailSerializer(room)
+        self.assertEqual(serializer.data, res.data)
+
+        # check authenticated user
+        self.assertEqual(room.owner, self.user)
+
+    def test_create_rooms_partial_amenity(self):
+        """3. POST /rooms -> rooms 생성"""
+        payload = self.default_object_create.room_defaults.copy()
+        self.default_object_create.create_category(kind="rooms")
+        self.default_object_create.create_amenity(name="item1")
+        self.default_object_create.create_amenity(name="item2")
+
+        payload.update({"category": 1})
+        payload.update({"amenities": [1, 3]})
+
+        # check status code
+        res = self.client.post(ROOM_URL, payload, format="json")
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+        # check data
+        self.assertFalse(Room.objects.filter(id=1).exists())
 
     def test_create_rooms_experience_category_raise_error(self):
         """room 생성시 experiences category를 넣으면 error"""

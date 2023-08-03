@@ -10,7 +10,7 @@ class TinyUserSerializer(ModelSerializer):
     class Meta:
         model = get_user_model()
         fields = (
-            "name",
+            "username",
             "avatar",
             "email",
         )
@@ -22,7 +22,7 @@ class UserSerializer(ModelSerializer):
         fields = (
             "email",
             "password",
-            "name",
+            "username",
         )
 
 

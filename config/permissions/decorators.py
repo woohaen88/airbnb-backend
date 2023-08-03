@@ -29,6 +29,6 @@ def authentication_required(func):
         except Exception:
             pass
 
-        func(apiview_class, request, *args, **kwargs)
+        return func(apiview_class, request, *args, **kwargs)
 
     return wrapper

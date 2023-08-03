@@ -87,13 +87,7 @@ class Rooms(APIView):
         return Response(serializer.data)
 
     @authentication_required
-    def post(self, request: Request):
-        if not request.user.is_authenticated:
-            return Response(
-                NotAuthenticated.default_detail,
-                status=status.HTTP_401_UNAUTHORIZED,
-            )
-
+    def post(self, request: Request, *args, **kwargs):
         serializer: Serializer = RoomDetailSerializer(data=request.data)
         if serializer.is_valid():
             # category validation
@@ -107,34 +101,29 @@ class Rooms(APIView):
             except Category.DoesNotExist:
                 raise NotFound("해당 카테고리는 존재하지 않음 ㅅㄱ")
 
+            # amenities
+            amenities = request.data.get("amenities", None)
+
             try:
                 with transaction.atomic():
                     room = serializer.save(
                         owner=request.user,
                         category=category,
-                        amenities=[],
                     )
 
-                    # amenities
-                    amenities = request.data.get("amenities", [])
-
-                    if amenities:  # amenities 입력값이 존재
+                    if amenities:
                         for amenity_id in amenities:
                             amenity = Amenity.objects.get(id=amenity_id)
                             room.amenities.add(amenity)
-
                         serializer = RoomDetailSerializer(room)
-
-                        return Response(
-                            serializer.data,
-                            status=status.HTTP_201_CREATED,
-                        )
-
-                    return Response(
-                        serializer.data,
-                        status=status.HTTP_201_CREATED,
-                    )
-
+                        return Response(serializer.data, status=status.HTTP_201_CREATED)
+                    serializer = RoomDetailSerializer(room)
+                    return Response(serializer.data, status=status.HTTP_201_CREATED)
+            # except Exception:
+            #     return Response(
+            #         data=ParseError.default_detail,
+            #         status=status.HTTP_400_BAD_REQUEST,
+            #     )
             except Exception:
                 raise ParseError("Amenity not found")
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
