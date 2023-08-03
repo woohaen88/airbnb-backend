@@ -1,5 +1,6 @@
 from django.urls import path
 from rooms import views
+from rooms.url_match import get_update_delete, get_post_dict
 
 app_name = "rooms"
 
@@ -7,17 +8,12 @@ app_name = "rooms"
 urlpatterns = [
     path(
         "",
-        views.Rooms.as_view(
-            {
-                "get": "list",
-                "post": "create",
-            }
-        ),
+        views.Rooms.as_view(get_post_dict),
         name="room-list",
     ),
     path(
         "<int:room_id>/",
-        views.RoomDetail.as_view(),
+        views.RoomDetail.as_view(get_update_delete),
         name="room-detail",
     ),
     path(
