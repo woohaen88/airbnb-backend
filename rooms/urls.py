@@ -2,7 +2,7 @@ from django.urls import path
 from rooms import views
 from rooms.url_match import (
     get_update_delete_dict,
-    get_post_dict,
+    list_create_dict,
     list_dict,
     create_dict,
 )
@@ -13,7 +13,7 @@ app_name = "rooms"
 urlpatterns = [
     path(
         "",
-        views.Rooms.as_view(get_post_dict),
+        views.Rooms.as_view(list_create_dict),
         name="room-list",
     ),
     path(
@@ -23,7 +23,7 @@ urlpatterns = [
     ),
     path(
         "<int:room_id>/reviews/",
-        views.RoomReviews.as_view(list_dict),
+        views.RoomReviews.as_view(list_create_dict),
         name="room-reviews",
     ),
     path(

@@ -207,7 +207,11 @@ class RoomDetail(
         instance.delete()
 
 
-class RoomReviews(ListModelMixin, GenericViewSet):
+class RoomReviews(
+    ListModelMixin,
+    CreateModelMixin,
+    GenericViewSet,
+):
     queryset = Room.objects.all()
     serializer_class = ReviewSerializer
     lookup_field = "id"
@@ -226,6 +230,23 @@ class RoomReviews(ListModelMixin, GenericViewSet):
         room = self.get_object()
         serializer = self.get_serializer(room.reviews.all()[start:end], many=True)
         return Response(serializer.data)
+
+    @authentication_required
+    def create(self, request, *args, **kwargs):
+        room = self.get_object()
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        review = self.perform_create(serializer, user=request.user, room=room)
+        updated_serializer = self.get_serializer(review)
+        headers = self.get_success_headers(updated_serializer.data)
+        return Response(
+            updated_serializer.data,
+            status=status.HTTP_201_CREATED,
+            headers=headers,
+        )
+
+    def perform_create(self, serializer, **kwargs):
+        return serializer.save(**kwargs)
 
 
 class RoomPhotos(CreateModelMixin, GenericViewSet):

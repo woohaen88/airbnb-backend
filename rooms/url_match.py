@@ -1,4 +1,4 @@
-get_post_dict = {
+list_create_dict = {
     "get": "list",
     "post": "create",
 }
