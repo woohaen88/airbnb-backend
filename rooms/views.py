@@ -1,4 +1,6 @@
 from typing import Any
+
+from django.conf import settings
 from django.db import transaction
 from django.shortcuts import get_object_or_404
 
@@ -26,6 +28,7 @@ from rest_framework.mixins import (
 
 from categories.models import Category
 from common.exceptions import get_object_or_400
+from reviews.serializers import ReviewSerializer
 from rooms.models import Amenity, Room
 from rooms.serializers import (
     AmenitySerializer,
@@ -200,3 +203,24 @@ class RoomDetail(
 
     def perform_destroy(self, instance):
         instance.delete()
+
+
+class RoomReviews(RetrieveModelMixin, GenericViewSet):
+    queryset = Room.objects.all()
+    serializer_class = ReviewSerializer
+    lookup_field = "id"
+    lookup_url_kwarg = "room_id"
+
+    def retrieve(self, request, *args, **kwargs):
+        try:
+            page = request.query_params.get("page", 1)
+            page = int(page)
+        except ValueError:
+            page = 1
+        page_size = settings.PAGE_SIZE
+
+        start = page_size * (page - 1)
+        end = start + 3
+        room = self.get_object()
+        serializer = self.get_serializer(room.reviews.all()[start:end], many=True)
+        return Response(serializer.data)

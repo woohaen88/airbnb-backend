@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
@@ -6,6 +7,7 @@ from rest_framework.test import APIClient
 from rest_framework import status
 
 from common.utils import DefaultObjectCreate, create_user
+from reviews.serializers import ReviewSerializer
 from rooms.models import Room
 from rooms.serializers import RoomListSerializer, RoomDetailSerializer
 
@@ -16,10 +18,15 @@ def room_detail_url(room_id: int):
     return reverse("rooms:room-detail", args=(room_id,))
 
 
+def room_review_url(room_id: int, page=None):
+    return reverse("rooms:room-reviews", args=(room_id,))
+
+
 class PublicRoomAPisTest(TestCase):
     def setUp(self):
         self.default_object_create = DefaultObjectCreate()
         self.client = APIClient()
+        self.user = create_user(email="test@test.com", password="password123")
 
     def test_create_room_raise_error(self):
         """인증되지 않은 유저가 room을 생성할때 401 error 발생"""
@@ -46,6 +53,49 @@ class PublicRoomAPisTest(TestCase):
         res = self.client.put(target_url)
 
         self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_get_room_reviews(self):
+        room = self.default_object_create.create_room(owner=self.user)
+        experience = self.default_object_create.create_experience(host=self.user)
+
+        self.default_object_create.create_review(
+            user=self.user,
+            room=room,
+            experience=experience,
+            payload="review1",
+            rating=3,
+        )
+
+        url = room_review_url(room.id)
+        res = self.client.get(url)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+        room = Room.objects.get(id=room.id)
+        serializer = ReviewSerializer(room.reviews.all(), many=True)
+
+        self.assertEqual(serializer.data, res.data)
+
+    def test_get_room_reviews_with_pagination(self):
+        room = self.default_object_create.create_room(owner=self.user)
+        experience = self.default_object_create.create_experience(host=self.user)
+
+        for i in range(10):
+            self.default_object_create.create_review(
+                user=self.user,
+                room=room,
+                experience=experience,
+                payload="review1",
+                rating=3,
+            )
+
+        for page in range(1, 5):
+            url = f"/api/v1/rooms/{room.id}/reviews/?page={page}"
+            res = self.client.get(url)
+            self.assertEqual(res.status_code, status.HTTP_200_OK)
+            if page != 4:
+                self.assertEqual(len(res.data), 3)
+            else:
+                self.assertEqual(len(res.data), 1)
 
 
 class PrivateRoomAPisTest(TestCase):
