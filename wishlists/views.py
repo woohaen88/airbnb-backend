@@ -31,8 +31,9 @@ class WishlistsView(
     @authentication_required
     def list(self, request, *args, **kwargs):
         wishlists = self.filter_queryset(self.get_queryset())
-        print(wishlists)
-        serializer = self.get_serializer(wishlists, many=True)
+        serializer = self.get_serializer(
+            wishlists, many=True, context={"request": request}
+        )
         return Response(serializer.data)
 
     @authentication_required
