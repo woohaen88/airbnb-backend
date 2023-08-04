@@ -5,13 +5,13 @@ from rest_framework.viewsets import GenericViewSet
 from rest_framework.mixins import DestroyModelMixin
 
 from medias.models import Photo
-from medias.serializers import RoomPhotoSerializer
+from medias.serializers import PhotoSerializer
 from config.permissions.decorators import authentication_required
 
 
 class PhotoDetailView(DestroyModelMixin, GenericViewSet):
     queryset = Photo.objects.all()
-    serializer_class = RoomPhotoSerializer
+    serializer_class = PhotoSerializer
     lookup_field = "id"
     lookup_url_kwarg = "photo_id"
 

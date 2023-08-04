@@ -29,7 +29,7 @@ from rest_framework.mixins import (
 from categories.models import Category
 from common.exceptions import get_object_or_400
 from medias.models import Photo
-from medias.serializers import RoomPhotoSerializer
+from medias.serializers import PhotoSerializer
 from reviews.serializers import ReviewSerializer
 from rooms.models import Amenity, Room
 from rooms.serializers import (
@@ -230,7 +230,7 @@ class RoomReviews(ListModelMixin, GenericViewSet):
 
 class RoomPhotos(CreateModelMixin, GenericViewSet):
     queryset = Room.objects.all()
-    serializer_class = RoomPhotoSerializer
+    serializer_class = PhotoSerializer
     lookup_field = "id"
     lookup_url_kwarg = "room_id"
 

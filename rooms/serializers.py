@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
 
+from medias.serializers import PhotoSerializer
 from reviews.serializers import ReviewSerializer
 from rooms.models import Amenity, Room
 
@@ -25,6 +26,7 @@ class RoomDetailSerializer(ModelSerializer):
         many=True,
         read_only=True,
     )
+    photos = PhotoSerializer(read_only=True, many=True)
 
     class Meta:
         model = Room
@@ -49,6 +51,7 @@ class RoomDetailSerializer(ModelSerializer):
             "rating",
             "is_owner",
             "reviews",
+            "photos",
         )
 
     def get_is_owner(self, room: Room):
