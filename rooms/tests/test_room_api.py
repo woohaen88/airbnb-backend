@@ -56,18 +56,18 @@ class PublicRoomAPisTest(TestCase):
 
     def test_get_room_reviews(self):
         room = self.default_object_create.create_room(owner=self.user)
-        experience = self.default_object_create.create_experience(host=self.user)
+        # experience = self.default_object_create.create_experience(host=self.user)
 
         self.default_object_create.create_review(
             user=self.user,
             room=room,
-            experience=experience,
             payload="review1",
             rating=3,
         )
 
         url = room_review_url(room.id)
         res = self.client.get(url)
+
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
         room = Room.objects.get(id=room.id)
@@ -77,13 +77,11 @@ class PublicRoomAPisTest(TestCase):
 
     def test_get_room_reviews_with_pagination(self):
         room = self.default_object_create.create_room(owner=self.user)
-        experience = self.default_object_create.create_experience(host=self.user)
 
         for i in range(10):
             self.default_object_create.create_review(
                 user=self.user,
                 room=room,
-                experience=experience,
                 payload="review1",
                 rating=3,
             )

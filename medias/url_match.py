@@ -9,10 +9,14 @@ get_update_delete_dict = {
     "delete": "destroy",
 }
 
-list_dict = {
-    "get": "list",
+retrieve_dict = {
+    "get": "retrieve",
 }
 
 create_dict = {
     "post": "create",
+}
+
+destroy_dict = {
+    "delete": "destroy",
 }

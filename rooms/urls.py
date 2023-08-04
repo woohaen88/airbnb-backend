@@ -3,7 +3,8 @@ from rooms import views
 from rooms.url_match import (
     get_update_delete_dict,
     get_post_dict,
-    get_dict,
+    list_dict,
+    create_dict,
 )
 
 app_name = "rooms"
@@ -22,8 +23,13 @@ urlpatterns = [
     ),
     path(
         "<int:room_id>/reviews/",
-        views.RoomReviews.as_view(get_dict),
+        views.RoomReviews.as_view(list_dict),
         name="room-reviews",
+    ),
+    path(
+        "<int:room_id>/photos/",
+        views.RoomPhotos.as_view(create_dict),
+        name="room-photos",
     ),
     path(
         "amenities/",

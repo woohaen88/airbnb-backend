@@ -101,8 +101,8 @@ class DefaultObjectCreate:
     def create_review(
         self,
         user,
-        room,
-        experience,
+        room=None,
+        experience=None,
         *args,
         **kwargs,
     ):

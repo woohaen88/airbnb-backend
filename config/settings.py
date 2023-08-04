@@ -153,3 +153,6 @@ REST_FRAMEWORK = {
 }
 
 PAGE_SIZE = 3
+
+MEDIA_URL = "user-uploads/"
+MEDIA_ROOT = "uploads"

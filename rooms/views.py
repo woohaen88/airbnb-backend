@@ -28,6 +28,8 @@ from rest_framework.mixins import (
 
 from categories.models import Category
 from common.exceptions import get_object_or_400
+from medias.models import Photo
+from medias.serializers import RoomPhotoSerializer
 from reviews.serializers import ReviewSerializer
 from rooms.models import Amenity, Room
 from rooms.serializers import (
@@ -205,13 +207,13 @@ class RoomDetail(
         instance.delete()
 
 
-class RoomReviews(RetrieveModelMixin, GenericViewSet):
+class RoomReviews(ListModelMixin, GenericViewSet):
     queryset = Room.objects.all()
     serializer_class = ReviewSerializer
     lookup_field = "id"
     lookup_url_kwarg = "room_id"
 
-    def retrieve(self, request, *args, **kwargs):
+    def list(self, request, *args, **kwargs):
         try:
             page = request.query_params.get("page", 1)
             page = int(page)
@@ -224,3 +226,27 @@ class RoomReviews(RetrieveModelMixin, GenericViewSet):
         room = self.get_object()
         serializer = self.get_serializer(room.reviews.all()[start:end], many=True)
         return Response(serializer.data)
+
+
+class RoomPhotos(CreateModelMixin, GenericViewSet):
+    queryset = Room.objects.all()
+    serializer_class = RoomPhotoSerializer
+    lookup_field = "id"
+    lookup_url_kwarg = "room_id"
+
+    @authentication_required
+    def create(self, request, *args, **kwargs):
+        room = self.get_object()
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        photo = self.perform_create(serializer, room=room)
+        updated_serializer = self.get_serializer(photo)
+        headers = self.get_success_headers(serializer.data)
+        return Response(
+            updated_serializer.data,
+            status=status.HTTP_201_CREATED,
+            headers=headers,
+        )
+
+    def perform_create(self, serializer, **kwargs):
+        return serializer.save(**kwargs)
