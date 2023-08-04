@@ -17,3 +17,7 @@ list_dict = {
 create_dict = {
     "post": "create",
 }
+
+update_dict = {
+    "put": "update",
+}

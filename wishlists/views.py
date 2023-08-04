@@ -1,4 +1,5 @@
 from rest_framework import status
+
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 from rest_framework.mixins import (
@@ -9,8 +10,10 @@ from rest_framework.mixins import (
     RetrieveModelMixin,
 )
 
+from common.shorcut import get_object_or_404
+from rooms.models import Room
 from wishlists.models import Wishlist
-from wishlists.serializers import WishlistSerializer
+from wishlists.serializers import WishlistSerializer, WishlistToggleSerializer
 from config.permissions.decorators import authentication_required
 
 
@@ -93,3 +96,23 @@ class WishlistDetailView(
 
     def perform_destroy(self, wishlist):
         wishlist.delete()
+
+
+class WishlistToggleView(UpdateModelMixin, GenericViewSet):
+    queryset = Wishlist.objects.all()
+    serializer_class = WishlistToggleSerializer
+    lookup_field = "id"
+    lookup_url_kwarg = "wishlist_id"
+
+    def get_queryset(self):
+        return self.queryset.filter(user=self.request.user)
+
+    @authentication_required
+    def update(self, request, *args, **kwargs):
+        wishlist = self.get_object()
+        room = get_object_or_404(Room, id=kwargs.get("room_id"))
+
+        rooms = wishlist.rooms
+        rooms.remove(room) if rooms.filter(id=room.id).exists() else rooms.add(room)
+
+        return Response(status=status.HTTP_200_OK)

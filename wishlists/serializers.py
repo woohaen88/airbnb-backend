@@ -14,3 +14,7 @@ class WishlistSerializer(serializers.ModelSerializer):
             "name",
             "rooms",
         )
+
+
+class WishlistToggleSerializer(serializers.Serializer):
+    pass

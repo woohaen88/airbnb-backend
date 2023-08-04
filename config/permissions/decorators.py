@@ -19,7 +19,7 @@ def authentication_required(func):
         # authenticated_user와 owner가 같은지 check
         try:
             instance = apiview_class.get_object()  # room
-            for fk in ["owner", "host"]:
+            for fk in ["owner", "host", "user"]:
                 if hasattr(instance, fk):
                     if getattr(instance, fk) != request.user:
                         return Response(
