@@ -145,10 +145,12 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 AUTH_USER_MODEL = "users.User"
 
 REST_FRAMEWORK = {
+    # rest framework가 user를 찾는 방법이 들어있는 list
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework.authentication.SessionAuthentication",
         "rest_framework.authentication.BasicAuthentication",
         # "rest_framework_simplejwt.authentication.JWTAuthentication",
+        "config.authentication.TrustMeBroAuthentication",
     ],
 }
 

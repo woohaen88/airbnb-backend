@@ -10,8 +10,58 @@ from common.utils import create_user, DefaultObjectCreate
 from medias.models import Photo
 from reviews.models import Review
 from reviews.serializers import ReviewSerializer
+from rooms.models import Amenity, Room
+from wishlists.models import Wishlist
 
 generator = DefaultObjectCreate()
+
+
+# model
+def create_room(
+    owner,
+    amenities=False,
+    title="room_title",
+    country="korea",
+    city="seoul",
+    price=123,
+    rooms=3,
+    toilets=3,
+    description="desc1",
+    address="address",
+    pet_friendly=True,
+    kind=Room.KindChoices.PRIVATE_ROOM,
+):
+    room = Room.objects.create(
+        owner=owner,
+        title=title,
+        country=country,
+        city=city,
+        price=price,
+        rooms=rooms,
+        toilets=toilets,
+        description=description,
+        address=address,
+        pet_friendly=pet_friendly,
+        kind=kind,
+    )
+    if amenities:
+        amen1 = Amenity.objects.create(name="amen1", description="desc1")
+        amen2 = Amenity.objects.create(name="amen2", description="desc2")
+
+        room.amenities.add(amen1, amen2)
+        return room
+
+    return room
+
+
+def create_wishlist(
+    user,
+    name="wishlist1",
+):
+    return Wishlist.objects.create(
+        user=user,
+        name=name,
+    )
 
 
 def room_detail_url(room_id):
@@ -81,6 +131,22 @@ class PublicROOMApisWithPropertyTest(TestCase):
         res = self.client.post(target_url, payload)
         self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
 
+    def test_is_liked_true(self):
+        """
+        1. 로그인한 유저가 wishlist에 방을 추가하고
+        2. 그 방을 조회하면 is_liked==True
+        """
+
+        wishlist = create_wishlist(self.user)
+        room = create_room(owner=self.user, amenities=True)
+        wishlist.rooms.add(room)
+
+        target_url = room_detail_url(room.id)
+        res = self.client.get(target_url)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+        self.assertFalse(res.data.get("is_liked"), False)
+
 
 class PrivateRoomApisWithPropertyTest(TestCase):
     def setUp(self):
@@ -137,3 +203,19 @@ class PrivateRoomApisWithPropertyTest(TestCase):
         review = Review.objects.get(id=res.data["id"])
         serializer = ReviewSerializer(review)
         self.assertEqual(serializer.data, res.data)
+
+    def test_is_liked_true(self):
+        """
+        1. 로그인한 유저가 wishlist에 방을 추가하고
+        2. 그 방을 조회하면 is_liked==True
+        """
+
+        wishlist = create_wishlist(self.user)
+        room = create_room(owner=self.user, amenities=True)
+        wishlist.rooms.add(room)
+
+        target_url = room_detail_url(room.id)
+        res = self.client.get(target_url)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+        self.assertTrue(res.data.get("is_liked"), True)

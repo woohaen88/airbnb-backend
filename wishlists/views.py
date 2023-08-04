@@ -10,7 +10,7 @@ from rest_framework.mixins import (
     RetrieveModelMixin,
 )
 
-from common.shorcut import get_object_or_404
+from common.shortcut import get_object_or_404
 from rooms.models import Room
 from wishlists.models import Wishlist
 from wishlists.serializers import WishlistSerializer, WishlistToggleSerializer
