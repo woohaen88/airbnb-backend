@@ -50,3 +50,7 @@ class AuthTokenSerializer(Serializer):
 
         attrs["user"] = user
         return attrs
+
+
+class UserLogoutSerializer(Serializer):
+    pass

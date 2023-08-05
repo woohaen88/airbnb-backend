@@ -12,6 +12,7 @@ django = "^4.2.3"
 black = "^23.7.0"
 pillow = "^10.0.0"
 djangorestframework = "^3.14.0"
+djangorestframework-simplejwt = "^5.2.2"
 
 
 [build-system]

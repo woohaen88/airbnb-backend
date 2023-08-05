@@ -21,3 +21,7 @@ create_dict = {
 update_dict = {
     "put": "update",
 }
+
+retrieve_dict = {
+    "get": "retrieve",
+}

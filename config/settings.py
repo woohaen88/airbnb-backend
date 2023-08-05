@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 from pathlib import Path
+import datetime
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -54,7 +55,7 @@ SYSTEM_APPS = [
 
 THIRD_PARTY_APPS = [
     "rest_framework",
-    "rest_framework.authtoken",
+    "rest_framework_simplejwt",
 ]
 
 INSTALLED_APPS = SYSTEM_APPS + THIRD_PARTY_APPS + CUSTOM_APPS
@@ -147,14 +148,26 @@ AUTH_USER_MODEL = "users.User"
 REST_FRAMEWORK = {
     # rest framework가 user를 찾는 방법이 들어있는 list
     "DEFAULT_AUTHENTICATION_CLASSES": [
+        "config.authentication.SimpleJWTAuthentication",
         "rest_framework.authentication.SessionAuthentication",
         "rest_framework.authentication.BasicAuthentication",
-        # "rest_framework_simplejwt.authentication.JWTAuthentication",
-        "config.authentication.TrustMeBroAuthentication",
     ],
 }
+
 
 PAGE_SIZE = 3
 
 MEDIA_URL = "user-uploads/"
 MEDIA_ROOT = "uploads"
+
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": datetime.timedelta(hours=1)
+    if DEBUG
+    else datetime.timedelta(days=7),  # JWT 토근의 유효기간
+    "REFRESH_TOKEN_LIFETIME": datetime.timedelta(hours=3)
+    if DEBUG
+    else datetime.timedelta(days=28),  # JWT 토큰 갱신의 유효기간
+    "ROTATE_REFRESH_TOKENS": True,
+    "BLACKLIST_AFTER_ROTATION": True,
+}

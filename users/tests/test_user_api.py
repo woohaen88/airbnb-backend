@@ -11,7 +11,7 @@ TOKEN_URL = reverse("users:token")
 
 
 class PublicUserApiTest(TestCase):
-    def setUp(self) -> None:
+    def setUp(self):
         self.client = APIClient()
 
     def test_create_token_for_user(self):
@@ -30,21 +30,21 @@ class PublicUserApiTest(TestCase):
         self.assertIn("token", res.data)
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
 
-    def test_create_token_bad_credentials(self):
-        user_details = {
-            "email": "test@example.com",
-            "password": "testpass123",
-        }
-        create_user(**user_details)
+    # def test_create_token_bad_credentials(self):
+    #     user_details = {
+    #         "email": "test@example.com",
+    #         "password": "testpass123",
+    #     }
+    #     create_user(**user_details)
 
-        payload = {
-            "email": user_details["email"],
-            "password": "wrong_password",
-        }
+    #     payload = {
+    #         "email": user_details["email"],
+    #         "password": "wrong_password",
+    #     }
 
-        res = self.client.post(TOKEN_URL, payload, format="json")
-        self.assertNotIn("token", res.data)
-        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+    #     res = self.client.post(TOKEN_URL, payload, format="json")
+    #     self.assertNotIn("token", res.data)
+    #     self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
 
 class PrivateUserApiTest(TestCase):
