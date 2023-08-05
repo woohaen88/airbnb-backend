@@ -1,20 +1,13 @@
 from django.conf import settings
 from django.db import transaction
 from django.shortcuts import get_object_or_404
-
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.exceptions import (
     NotFound,
     ParseError,
     PermissionDenied,
 )
-from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
-from rest_framework.request import Request
-from rest_framework.response import Response
-
-from rest_framework.views import APIView
-
-from rest_framework.viewsets import GenericViewSet
 from rest_framework.mixins import (
     ListModelMixin,
     CreateModelMixin,
@@ -22,11 +15,17 @@ from rest_framework.mixins import (
     DestroyModelMixin,
     UpdateModelMixin,
 )
+from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
+from rest_framework.request import Request
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework.viewsets import GenericViewSet
 
-
+from bookings.models import Booking
+from bookings.serializers import PublicBookingSerializer, CreateRoomBookingSerializer
 from categories.models import Category
 from common.exceptions import get_object_or_400
-
+from config.authentication import SimpleJWTAuthentication
 from medias.serializers import PhotoSerializer
 from reviews.serializers import ReviewSerializer
 from rooms.models import Amenity, Room
@@ -35,8 +34,6 @@ from rooms.serializers import (
     RoomDetailSerializer,
     RoomListSerializer,
 )
-
-from config.authentication import SimpleJWTAuthentication
 
 
 class Amenities(APIView):
@@ -271,6 +268,56 @@ class RoomPhotos(CreateModelMixin, GenericViewSet):
             updated_serializer.data,
             status=status.HTTP_201_CREATED,
             headers=headers,
+        )
+
+    def perform_create(self, serializer, **kwargs):
+        return serializer.save(**kwargs)
+
+
+class RoomBookingView(
+    CreateModelMixin,
+    ListModelMixin,
+    GenericViewSet,
+):
+    queryset = Room.objects.all()
+    serializer_class = PublicBookingSerializer
+    lookup_field = "id"
+    lookup_url_kwarg = "room_id"
+
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    authentication_classes = [SimpleJWTAuthentication]
+
+    def get_serializer_class(self):
+        if self.action == "create":
+            return CreateRoomBookingSerializer
+        return self.serializer_class
+
+    def list(self, request, *args, **kwargs):
+        room = self.get_object()  # room_id로 쿼리 조회
+        now = timezone.localtime(timezone.now()).date()
+        bookings = Booking.objects.filter(
+            room=room,
+            kind=Booking.BookingKindChoices.ROOM,
+            check_in__gt=now,
+        )
+        serializer = self.get_serializer(bookings, many=True)
+        return Response(serializer.data)
+
+    def create(self, request, *args, **kwargs):
+        room = self.get_object()
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        updated_room = self.perform_create(
+            serializer,
+            room=room,
+            user=request.user,
+            kind=Booking.BookingKindChoices.ROOM,
+        )
+        updated_serializer = self.get_serializer(updated_room)
+        headers = self.get_success_headers(updated_serializer.data)
+        return Response(
+            updated_serializer.data, status=status.HTTP_201_CREATED, headers=headers
         )
 
     def perform_create(self, serializer, **kwargs):

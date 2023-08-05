@@ -1,14 +1,19 @@
+from datetime import datetime
+
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
+from rest_framework import status
 from rest_framework.test import APIClient
 
+from bookings.models import Booking
 from config.snippets import get_tokens_for_user
 from medias.models import Photo
 from rooms.models import Amenity, Room
 from wishlists.models import Wishlist
+import pytz
 
-BOOKING_URL = reverse("rooms:booking-list")
+asia_timezone = pytz.timezone("Asia/Seoul")
 
 
 # model
@@ -67,49 +72,77 @@ def room_review_url(room_id):
     return reverse("rooms:room-reviews", kwargs={"room_id": room_id})
 
 
+def room_booking_url(room_id):
+    return reverse("rooms:booking-list", kwargs={"room_id": room_id})
+
+
+# === Creation Model
+def create_booking(
+    user,
+    room,
+    kind=Booking.BookingKindChoices.ROOM,
+    check_in="2024-01-13",
+    check_out="2024-02-15",
+    experience_time="2023-07-23",
+    guests=3,
+):
+    check_in = datetime.strptime(check_in, "%Y-%m-%d")
+    check_out = datetime.strptime(check_out, "%Y-%m-%d")
+    experience_time = datetime.strptime(experience_time, "%Y-%m-%d").replace(
+        tzinfo=asia_timezone
+    )
+
+    return Booking.objects.create(
+        user=user,
+        room=room,
+        kind=kind,
+        check_in=check_in,
+        check_out=check_out,
+        experience_time=experience_time,
+        guests=guests,
+    )
+
+
 class PublicROOMApisWithPropertyTest(TestCase):
     def setUp(self):
         self.user = get_user_model().objects.create_user(
             email="user@example.com", password="password"
         )
 
-        self.room_photo = Photo.objects.create(
-            file="http://example.com",
-            description="desc1",
-            room=self.room,
-        )
-
-        self.experiece_photo = Photo.objects.create(
-            file="http://example_experience.com",
-            description="desc2",
-            experience=self.experience,
-        )
-
         self.client = APIClient()
+
+    def test_get_booking(self):
+        """
+        로그인 하지 않은 유저가 예약을 조회하면 성공
+        """
+        room = create_room(owner=self.user)
+        create_booking(self.user, room)
+
+        target_url = room_booking_url(room.id)
+        res = self.client.get(target_url)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertTrue(len(res.data) > 0)
 
     def test_post_booking_raise_error(self):
         """
         로그인 하지 않은 유저가 새로운 예약을 생성하려 했을 때 401에러 발생
         """
-        pass
+        payload = {
+            "check_in": "2023-07-22",
+            "check_out": "2023-07-25",
+            "guests": 5,
+        }
+        room = create_room(owner=self.user)
+
+        target_url = room_booking_url(room.id)
+        res = self.client.post(target_url, payload)
+        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
 
 
 class PrivateRoomApisWithPropertyTest(TestCase):
     def setUp(self):
         self.user = get_user_model().objects.create_user(
             email="user@example.com", password="password"
-        )
-
-        self.room_photo = Photo.objects.create(
-            file="http://example.com",
-            description="desc1",
-            room=self.room,
-        )
-
-        self.experiece_photo = Photo.objects.create(
-            file="http://example_experience.com",
-            description="desc2",
-            experience=self.experience,
         )
 
         self.client = APIClient()
@@ -122,24 +155,48 @@ class PrivateRoomApisWithPropertyTest(TestCase):
         """
         인증된 유저가 새로운 예약을 요청시 성공, 201
         """
-        pass
+        payload = {
+            "check_in": "2024-08-22",
+            "check_out": "2024-08-25",
+            "guests": 5,
+        }
+        room = create_room(owner=self.user)
 
-    def test_post_booking_raise_error_by_blabla1(self):
-        """
-        인증된 유저가 새로운 예약을 하려고 하는데, 이미 방이 예약된 경우 에러발생? 에러코드 미상
-        """
-        pass
+        target_url = room_booking_url(room.id)
+        res = self.client.post(target_url, payload)
 
-    def test_post_booking_raise_error_by_blabla2(self):
-        """
-        인증된 유저가 새로운 예약을 하려고 하는데, 그 날짜가 현재 날짜보다 미래일 경우 에러
-        에러코드 미상
-        """
-        pass
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
 
-    def test_post_booking_raise_error_by_blabla3(self):
+    def test_post_booking_raise_error_by_room_already_exists(self):
         """
-        인증된 유저가 새로운 예약을 하려고 하는데, 그 날짜가 현재 날짜보다 과거일 경우 에러
-        에러코드 미상
+        인증된 유저가 새로운 예약을 하려고 하는데, 이미 방이 예약된 경우 400 에러
         """
-        pass
+        payload = {
+            "check_in": "2024-01-15",
+            "check_out": "2024-02-25",
+            "guests": 5,
+        }
+        room = create_room(owner=self.user)
+        create_booking(user=self.user, room=room)
+
+        target_url = room_booking_url(room.id)
+        res = self.client.post(target_url, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_post_booking_raise_error_by_the_date_is_past_now(self):
+        """
+        인증된 유저가 새로운 예약을 하려고 하는데, 그 날짜가 현재 날짜보다 과거일 경우 400 에러
+        """
+        payload = {
+            "check_in": "2022-01-15",
+            "check_out": "2024-02-25",
+            "guests": 5,
+        }
+        room = create_room(owner=self.user)
+        create_booking(user=self.user, room=room)
+
+        target_url = room_booking_url(room.id)
+        res = self.client.post(target_url, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)

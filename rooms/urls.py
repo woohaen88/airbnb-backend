@@ -32,6 +32,11 @@ urlpatterns = [
         name="room-photos",
     ),
     path(
+        "<int:room_id>/bookings/",
+        views.RoomBookingView.as_view(list_create_dict),
+        name="booking-list",
+    ),
+    path(
         "amenities/",
         views.Amenities.as_view(),
         name="amenity-list",
