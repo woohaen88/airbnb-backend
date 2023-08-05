@@ -5,6 +5,7 @@ from rest_framework.test import APIClient
 from rest_framework import status
 
 from categories.models import Category
+from config.snippets import get_tokens_for_user
 from rooms.models import Room, Amenity
 from wishlists.models import Wishlist
 from wishlists.serializers import WishlistSerializer
@@ -107,7 +108,8 @@ class PrivateApisTest(TestCase):
             self.room.amenities.add(amenity)
 
         self.client = APIClient()
-        self.client.force_login(self.user)
+        access_token, _ = get_tokens_for_user(self.user)
+        self.client.force_authenticate(self.user, token=access_token)
 
     def test_create_wishlist_successful(self):
         payload = {"name": "wishlist_test"}

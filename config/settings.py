@@ -170,4 +170,5 @@ SIMPLE_JWT = {
     else datetime.timedelta(days=28),  # JWT 토큰 갱신의 유효기간
     "ROTATE_REFRESH_TOKENS": True,
     "BLACKLIST_AFTER_ROTATION": True,
+    "UPDATE_LAST_LOGIN": False,
 }

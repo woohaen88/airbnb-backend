@@ -7,6 +7,7 @@ from rest_framework import status
 
 
 from common.utils import create_user, DefaultObjectCreate
+from config.snippets import get_tokens_for_user
 from medias.models import Photo
 from reviews.models import Review
 from reviews.serializers import ReviewSerializer
@@ -192,7 +193,8 @@ class PrivateRoomApisWithPropertyTest(TestCase):
         )
 
         self.client = APIClient()
-        self.client.force_login(self.user)
+        access_token, _ = get_tokens_for_user(self.user)
+        self.client.force_authenticate(self.user, token=access_token)
 
     def test_post_review_selected_room(self):
         target_url = room_review_url(self.room.id)

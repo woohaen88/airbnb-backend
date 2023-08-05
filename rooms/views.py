@@ -1,5 +1,3 @@
-from typing import Any
-
 from django.conf import settings
 from django.db import transaction
 from django.shortcuts import get_object_or_404
@@ -7,15 +5,15 @@ from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.exceptions import (
     NotFound,
-    NotAuthenticated,
     ParseError,
     PermissionDenied,
 )
+from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.request import Request
 from rest_framework.response import Response
-from rest_framework.serializers import Serializer
+
 from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
+
 from rest_framework.viewsets import GenericViewSet
 from rest_framework.mixins import (
     ListModelMixin,
@@ -28,7 +26,7 @@ from rest_framework.mixins import (
 
 from categories.models import Category
 from common.exceptions import get_object_or_400
-from medias.models import Photo
+
 from medias.serializers import PhotoSerializer
 from reviews.serializers import ReviewSerializer
 from rooms.models import Amenity, Room
@@ -37,7 +35,8 @@ from rooms.serializers import (
     RoomDetailSerializer,
     RoomListSerializer,
 )
-from config.permissions.decorators import authentication_required
+
+from config.authentication import SimpleJWTAuthentication
 
 
 class Amenities(APIView):
@@ -102,7 +101,8 @@ class Rooms(
     queryset = Room.objects.all()
 
     serializer_class = RoomDetailSerializer
-    # permission_classes = [IsAuthenticatedOrReadOnly]
+    authentication_classes = [SimpleJWTAuthentication]
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get_serializer_class(self):
         if self.action == "list":
@@ -110,10 +110,10 @@ class Rooms(
         return self.serializer_class
 
     def list(self, request, *args, **kwargs):
-        serializer = self.get_serializer(self.queryset, many=True)
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
-    @authentication_required
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -154,6 +154,8 @@ class RoomDetail(
     DestroyModelMixin,
     GenericViewSet,
 ):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    authentication_classes = [SimpleJWTAuthentication]
     lookup_field = "id"
     lookup_url_kwarg = "room_id"
     queryset = Room.objects.all()
@@ -164,10 +166,11 @@ class RoomDetail(
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
 
-    @authentication_required
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop("partial", True)
         instance = self.get_object()
+        if instance.owner != request.user:
+            raise PermissionDenied("니가 작성한 것도 아닌데 수정하면 오또케~~")
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
 
@@ -197,7 +200,6 @@ class RoomDetail(
         room = serializer.save()
         return room
 
-    @authentication_required
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
         self.perform_destroy(instance)
@@ -212,6 +214,8 @@ class RoomReviews(
     CreateModelMixin,
     GenericViewSet,
 ):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    authentication_classes = [SimpleJWTAuthentication]
     queryset = Room.objects.all()
     serializer_class = ReviewSerializer
     lookup_field = "id"
@@ -231,7 +235,6 @@ class RoomReviews(
         serializer = self.get_serializer(room.reviews.all()[start:end], many=True)
         return Response(serializer.data)
 
-    @authentication_required
     def create(self, request, *args, **kwargs):
         room = self.get_object()
         serializer = self.get_serializer(data=request.data)
@@ -250,12 +253,13 @@ class RoomReviews(
 
 
 class RoomPhotos(CreateModelMixin, GenericViewSet):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [SimpleJWTAuthentication]
     queryset = Room.objects.all()
     serializer_class = PhotoSerializer
     lookup_field = "id"
     lookup_url_kwarg = "room_id"
 
-    @authentication_required
     def create(self, request, *args, **kwargs):
         room = self.get_object()
         serializer = self.get_serializer(data=request.data)

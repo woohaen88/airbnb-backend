@@ -5,6 +5,7 @@ from django.urls import reverse
 from rest_framework.test import APIClient
 from rest_framework import status
 
+from config.snippets import get_tokens_for_user
 from rooms.models import Room, Amenity
 from wishlists.models import Wishlist
 
@@ -86,15 +87,22 @@ class PublicWishlistWithSomeActionTest(TestCase):
         self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
 
 
+TOKEN_URL = reverse("users:token-create")
+
+
 class PrivateWishlistWithSomeActionTest(TestCase):
     def setUp(self):
         self.user = get_user_model().objects.create_user(
             email="test@example.com", password="test123!@3"
         )
-        self.client.force_login(self.user)
+        self.client = APIClient()
+
+        access_token, _ = get_tokens_for_user(self.user)
+        self.client.force_authenticate(self.user, token=access_token)
 
     def test_put_toggle_insert_room_of_wishlist(self):
         """wishlist가 생성된 상태에서 put 메소드로 룸 생성 및 삭제"""
+
         wishlist = create_wishlist(self.user)
 
         # 처음에 wishlist에 룸은 빈값

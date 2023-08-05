@@ -7,7 +7,7 @@ from rest_framework import status
 from common.utils import create_user
 
 CREATE_USER_URL = reverse("users:create")
-TOKEN_URL = reverse("users:token")
+TOKEN_URL = reverse("users:token-create")
 
 
 class PublicUserApiTest(TestCase):
@@ -27,8 +27,9 @@ class PublicUserApiTest(TestCase):
         }
 
         res = self.client.post(TOKEN_URL, payload)
-        self.assertIn("token", res.data)
-        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        self.assertIn("access", res.data)
+        self.assertIn("refresh", res.data)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
 
     # def test_create_token_bad_credentials(self):
     #     user_details = {

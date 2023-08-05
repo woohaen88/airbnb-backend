@@ -122,11 +122,12 @@ class LogoutView(mixins.CreateModelMixin, viewsets.GenericViewSet):
     authentication_classes = [JWTAuthentication]
 
     def create(self, request, *args, **kwargs):
-        logout(request)
-        return Response(
-            {"details": "logout!!"},
-            status=status.HTTP_200_OK,
+        response = Response(
+            {"message": "Logout success"}, status=status.HTTP_202_ACCEPTED
         )
+        response.delete_cookie("access_token")
+        response.delete_cookie("refresh_token")
+        return response
 
 
 class UserMeView(mixins.RetrieveModelMixin, viewsets.GenericViewSet):

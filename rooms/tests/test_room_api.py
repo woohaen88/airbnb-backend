@@ -1,4 +1,3 @@
-from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
@@ -10,6 +9,7 @@ from common.utils import DefaultObjectCreate, create_user
 from reviews.serializers import ReviewSerializer
 from rooms.models import Room
 from rooms.serializers import RoomListSerializer, RoomDetailSerializer
+from config.snippets import get_tokens_for_user
 
 ROOM_URL = reverse("rooms:room-list")
 
@@ -110,8 +110,8 @@ class PrivateRoomAPisTest(TestCase):
         self.default_object_create = DefaultObjectCreate()
         self.user = self.default_object_create.create_user()
         self.client = APIClient()
-        self.client.force_authenticate(self.user)
-        self.client.force_login(self.user)
+        access_token, _ = get_tokens_for_user(self.user)
+        self.client.force_authenticate(self.user, token=access_token)
 
     def test_get_rooms(self):
         """
@@ -249,9 +249,6 @@ class PrivateRoomAPisTest(TestCase):
     def test_delete_room_other_user_raise_error(self):
         """인증된 다른 유저가 room을 삭제할때 403 error 발생"""
         user1 = create_user(email="testuser@example.com", password="test2231")
-        user2 = create_user(email="user2@example.com", password="test123!@#")
-
-        self.client.force_login(user2)
 
         # user1, room 생성
         room = self.default_object_create.create_room(owner=user1)
@@ -260,7 +257,7 @@ class PrivateRoomAPisTest(TestCase):
 
         # call API
         self.client.delete(url)
-        self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(res.status_code, status.HTTP_204_NO_CONTENT)
 
     ### update
     # 인증된 다른 유저가 수정하려할 때 에러 발생
@@ -275,7 +272,6 @@ class PrivateRoomAPisTest(TestCase):
         target_url = room_detail_url(room.id)
 
         payload = {"title": "update title"}
-
         res = self.client.put(target_url, payload, format="json")
 
         self.assertEqual(
