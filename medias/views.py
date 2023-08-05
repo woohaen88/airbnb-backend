@@ -1,12 +1,12 @@
 from rest_framework import status
 from rest_framework.exceptions import PermissionDenied
+from rest_framework.mixins import DestroyModelMixin
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
-from rest_framework.mixins import DestroyModelMixin
 
+from config.permissions.decorators import authentication_required
 from medias.models import Photo
 from medias.serializers import PhotoSerializer
-from config.permissions.decorators import authentication_required
 
 
 class PhotoDetailView(DestroyModelMixin, GenericViewSet):

@@ -1,12 +1,11 @@
 from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
 
+from categories.serializers import CategorySerializer
 from medias.serializers import PhotoSerializer
 from reviews.serializers import ReviewSerializer
 from rooms.models import Amenity, Room
-
 from users.serializers import TinyUserSerializer
-from categories.serializers import CategorySerializer
 from wishlists.models import Wishlist
 
 

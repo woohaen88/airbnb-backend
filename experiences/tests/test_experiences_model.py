@@ -1,7 +1,8 @@
 from django.contrib.auth import get_user_model
-from django.test import TestCase
-from experiences.models import Experience, Perk
 from django.db import IntegrityError
+from django.test import TestCase
+
+from experiences.models import Experience, Perk
 
 
 class ExperiencesTest(TestCase):

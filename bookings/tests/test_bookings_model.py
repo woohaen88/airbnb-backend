@@ -1,9 +1,9 @@
+from django.db import IntegrityError
 from django.test import TestCase
+from django.utils import timezone
 
 from bookings.models import Booking
 from common.utils import DefaultObjectCreate
-from django.utils import timezone
-from django.db import IntegrityError
 
 
 class BookingsModelTest(TestCase):

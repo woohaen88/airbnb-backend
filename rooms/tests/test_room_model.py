@@ -2,8 +2,7 @@ from django.db import IntegrityError
 from django.test import TransactionTestCase
 
 from common.utils import DefaultObjectCreate
-from rooms.models import Room, Amenity
-from django.contrib.auth import get_user_model
+from rooms.models import Room
 
 
 class RoomsTest(TransactionTestCase):

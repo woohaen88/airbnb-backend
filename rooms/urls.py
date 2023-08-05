@@ -1,9 +1,9 @@
 from django.urls import path
+
 from rooms import views
 from rooms.url_match import (
     get_update_delete_dict,
     list_create_dict,
-    list_dict,
     create_dict,
 )
 

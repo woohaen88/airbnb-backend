@@ -1,34 +1,27 @@
-from django.contrib.auth import login, logout
-from rest_framework import mixins
-from rest_framework import viewsets
 from django.contrib.auth import get_user_model
+from django.contrib.auth import login
+from rest_framework import mixins
 from rest_framework import status
-
-from rest_framework.exceptions import NotAuthenticated, ParseError, AuthenticationFailed
+from rest_framework import viewsets
+from rest_framework.exceptions import ParseError, AuthenticationFailed
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from users import serializers
-
-
-from users.serializers import TinyUserSerializer, UserSerializer
-from common.shortcut import get_object_or_404
-
-
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework_simplejwt.serializers import (
+    TokenObtainPairSerializer,
+)
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
     TokenVerifyView,
 )
 
-
-from rest_framework.permissions import IsAuthenticated
-
-from rest_framework_simplejwt.serializers import (
-    TokenObtainPairSerializer,
-)
-from rest_framework_simplejwt.authentication import JWTAuthentication
+from common.shortcut import get_object_or_404
 from config.authentication import SimpleJWTAuthentication
+from users import serializers
+from users.serializers import TinyUserSerializer, UserSerializer
 
 
 class CreateJWTView(TokenObtainPairView):

@@ -1,6 +1,5 @@
 import django.db.utils
 from django.contrib.auth import get_user_model
-from django.test import TestCase
 
 from categories.models import Category
 from experiences.models import Experience, Perk

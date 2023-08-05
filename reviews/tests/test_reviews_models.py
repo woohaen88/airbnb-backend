@@ -1,4 +1,5 @@
 from django.test import TestCase
+
 from common.utils import DefaultObjectCreate
 from reviews.models import Review
 

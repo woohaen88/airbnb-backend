@@ -1,6 +1,7 @@
 from django.urls import path
-from users import views
+
 from common.url_match import create_dict, retrieve_dict
+from users import views
 
 app_name = "users"
 urlpatterns = [

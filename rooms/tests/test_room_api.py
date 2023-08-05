@@ -1,15 +1,14 @@
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
-
-from rest_framework.test import APIClient
 from rest_framework import status
+from rest_framework.test import APIClient
 
 from common.utils import DefaultObjectCreate, create_user
+from config.snippets import get_tokens_for_user
 from reviews.serializers import ReviewSerializer
 from rooms.models import Room
 from rooms.serializers import RoomListSerializer, RoomDetailSerializer
-from config.snippets import get_tokens_for_user
 
 ROOM_URL = reverse("rooms:room-list")
 

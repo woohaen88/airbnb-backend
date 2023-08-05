@@ -1,8 +1,4 @@
 from rest_framework import status
-
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
-from rest_framework.viewsets import GenericViewSet
 from rest_framework.mixins import (
     ListModelMixin,
     CreateModelMixin,
@@ -10,12 +6,15 @@ from rest_framework.mixins import (
     DestroyModelMixin,
     RetrieveModelMixin,
 )
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.viewsets import GenericViewSet
 
 from common.shortcut import get_object_or_404
+from config.authentication import SimpleJWTAuthentication
 from rooms.models import Room
 from wishlists.models import Wishlist
 from wishlists.serializers import WishlistSerializer, WishlistToggleSerializer
-from config.authentication import SimpleJWTAuthentication
 
 
 class WishlistsView(

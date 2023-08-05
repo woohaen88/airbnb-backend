@@ -1,6 +1,7 @@
 from django.urls import path
-from wishlists import views
+
 from common.url_match import list_create_dict, retrieve_update_destroy_dict, update_dict
+from wishlists import views
 
 app_name = "wishlists"
 urlpatterns = [
