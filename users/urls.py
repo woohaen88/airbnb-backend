@@ -37,7 +37,7 @@ urlpatterns = [
     ),  # jwt refresh url
     path(
         "me/",
-        views.UserMeView.as_view(url_match.list_dict),
+        views.UserMeView.as_view(url_match.list_update_dict),
         name="me",
     ),
 ]

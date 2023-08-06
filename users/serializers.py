@@ -54,7 +54,7 @@ class UserLogoutSerializer(Serializer):
     pass
 
 
-class PrivateUserSerializer:
+class PrivateUserSerializer(ModelSerializer):
     class Meta:
         model = get_user_model()
         exclude = (

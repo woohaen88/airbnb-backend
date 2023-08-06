@@ -147,3 +147,6 @@ class UserMeView(
         update_user = self.perform_update(serializer)
         update_serializer = self.get_serializer(update_user)
         return Response(update_serializer.data)
+
+    def perform_update(self, serializer, **kwargs):
+        return serializer.save(**kwargs)

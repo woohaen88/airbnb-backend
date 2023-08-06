@@ -14,6 +14,8 @@ list_dict = {
     "get": "list",
 }
 
+list_update_dict = {"get": "list", "put": "update"}
+
 create_dict = {
     "post": "create",
 }
