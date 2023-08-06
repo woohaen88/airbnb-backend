@@ -1,6 +1,6 @@
 from django.urls import path
 
-from common.url_match import create_dict, retrieve_dict
+from common import url_match
 from users import views
 
 app_name = "users"
@@ -12,12 +12,12 @@ urlpatterns = [
     ),
     path(
         "login/",
-        views.LoginView.as_view(create_dict),
+        views.LoginView.as_view(url_match.create_dict),
         name="login",
     ),
     path(
         "logout/",
-        views.LogoutView.as_view(create_dict),
+        views.LogoutView.as_view(url_match.create_dict),
         name="logout",
     ),
     path(
@@ -37,7 +37,7 @@ urlpatterns = [
     ),  # jwt refresh url
     path(
         "me/",
-        views.UserMeView.as_view(retrieve_dict),
+        views.UserMeView.as_view(url_match.list_dict),
         name="me",
     ),
 ]

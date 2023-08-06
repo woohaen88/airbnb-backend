@@ -123,19 +123,27 @@ class LogoutView(mixins.CreateModelMixin, viewsets.GenericViewSet):
         return response
 
 
-class UserMeView(mixins.RetrieveModelMixin, viewsets.GenericViewSet):
-    serializer_class = TinyUserSerializer
+class UserMeView(
+    mixins.ListModelMixin, mixins.UpdateModelMixin, viewsets.GenericViewSet
+):
+    serializer_class = serializers.PrivateUserSerializer
     queryset = get_user_model().objects.all()
     permission_classes = [IsAuthenticated]
     authentication_classes = [SimpleJWTAuthentication]
 
-    def get_object(self):
+    def get_queryset(self):
         return self.request.user
 
-    def get_queryset(self):
-        return get_user_model().objects.get(id=self.request.user.id)
-
-    def retrieve(self, request, *args, **kwargs):
-        user = self.get_object()
+    def list(self, request, *args, **kwargs):
+        user = self.get_queryset()
         serializer = self.get_serializer(user)
         return Response(serializer.data)
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop("partial", True)
+        user = self.get_queryset()
+        serializer = self.get_serializer(user, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        update_user = self.perform_update(serializer)
+        update_serializer = self.get_serializer(update_user)
+        return Response(update_serializer.data)

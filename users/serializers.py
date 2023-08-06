@@ -52,3 +52,17 @@ class AuthTokenSerializer(Serializer):
 
 class UserLogoutSerializer(Serializer):
     pass
+
+
+class PrivateUserSerializer:
+    class Meta:
+        model = get_user_model()
+        exclude = (
+            "password",
+            "is_superuser",
+            "id",
+            "is_staff",
+            "is_active",
+            "groups",
+            "user_permissions",
+        )
