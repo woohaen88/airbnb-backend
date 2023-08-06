@@ -66,7 +66,7 @@ class User(AbstractUser):
         null=True,
     )
 
-    avatar = models.ImageField(
+    avatar = models.URLField(
         blank=True,
     )
 
