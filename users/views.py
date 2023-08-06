@@ -21,7 +21,7 @@ from rest_framework_simplejwt.views import (
 from common.shortcut import get_object_or_404
 from config.authentication import SimpleJWTAuthentication
 from users import serializers
-from users.serializers import TinyUserSerializer, UserSerializer
+from users.serializers import UserSerializer
 
 
 class CreateJWTView(TokenObtainPairView):
@@ -124,7 +124,9 @@ class LogoutView(mixins.CreateModelMixin, viewsets.GenericViewSet):
 
 
 class UserMeView(
-    mixins.ListModelMixin, mixins.UpdateModelMixin, viewsets.GenericViewSet
+    mixins.ListModelMixin,
+    mixins.UpdateModelMixin,
+    viewsets.GenericViewSet,
 ):
     serializer_class = serializers.PrivateUserSerializer
     queryset = get_user_model().objects.all()
@@ -150,3 +152,33 @@ class UserMeView(
 
     def perform_update(self, serializer, **kwargs):
         return serializer.save(**kwargs)
+
+
+class UserChangePasswordView(
+    mixins.UpdateModelMixin,
+    viewsets.GenericViewSet,
+):
+    queryset = get_user_model().objects.all()
+    serializer_class = serializers.PasswordChangeSerializer
+
+    permission_classes = [IsAuthenticated]
+    AuthenticationFailed = [SimpleJWTAuthentication]
+
+    def get_queryset(self):
+        return self.request.user
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop("partial", True)
+        user = self.get_queryset()
+        raw_password = request.data.get("raw_password")
+        change_password = request.data.get("change_password")
+
+        assert (raw_password or change_password) is not None, "저기여! 입력값을 제대로 주셔야죠~"
+        serializer = self.get_serializer(user, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+
+        return Response({"details: 패스워드를 바꾸셨군여!"}, status=status.HTTP_200_OK)
+
+    def perform_update(self, serializer):
+        return serializer.save()

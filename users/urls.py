@@ -40,4 +40,9 @@ urlpatterns = [
         views.UserMeView.as_view(url_match.list_update_dict),
         name="me",
     ),
+    path(
+        "change-password/",
+        views.UserChangePasswordView.as_view(url_match.update_dict),
+        name="change-password",
+    ),
 ]
