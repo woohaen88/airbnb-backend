@@ -4,9 +4,12 @@ from rest_framework.mixins import DestroyModelMixin
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from config.permissions.decorators import authentication_required
+from rest_framework.permissions import IsAuthenticated
+
 from medias.models import Photo
 from medias.serializers import PhotoSerializer
+
+from config.authentication import SimpleJWTAuthentication
 
 
 class PhotoDetailView(DestroyModelMixin, GenericViewSet):
@@ -14,8 +17,10 @@ class PhotoDetailView(DestroyModelMixin, GenericViewSet):
     serializer_class = PhotoSerializer
     lookup_field = "id"
     lookup_url_kwarg = "photo_id"
+    authentication_classes = [SimpleJWTAuthentication]
+    permission_classes = [IsAuthenticated]
 
-    @authentication_required
+
     def destroy(self, request, *args, **kwargs):
         photo = self.get_object()
         self.perform_destroy(photo)
