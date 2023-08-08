@@ -112,7 +112,7 @@ class LogoutView(mixins.CreateModelMixin, viewsets.GenericViewSet):
     serializer_class = serializers.UserLogoutSerializer
     queryset = get_user_model().objects.all()
     permission_classes = [IsAuthenticated]
-    authentication_classes = [JWTAuthentication]
+    authentication_classes = [SimpleJWTAuthentication]
 
     def create(self, request, *args, **kwargs):
         response = Response(

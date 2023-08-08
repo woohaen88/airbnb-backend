@@ -53,11 +53,7 @@ SYSTEM_APPS = [
     "django.contrib.staticfiles",
 ]
 
-THIRD_PARTY_APPS = [
-    "rest_framework",
-    "rest_framework_simplejwt",
-    "corsheaders"
-]
+THIRD_PARTY_APPS = ["rest_framework", "rest_framework_simplejwt", "corsheaders"]
 
 INSTALLED_APPS = SYSTEM_APPS + THIRD_PARTY_APPS + CUSTOM_APPS
 
@@ -176,4 +172,6 @@ SIMPLE_JWT = {
 }
 
 # 서버로부터 로컬호스트:3000이 fetch하는걸 허용
-CORS_ALLOWED_ORIGINS = ["http://localhost:3000"]
+CORS_ALLOWED_ORIGINS = ["http://localhost:3000", "http://127.0.0.1:3000"]
+CORS_ALLOW_CREDENTIALS = True  # 자바스크립트로 요청을 받는걸 허용
+CSRF_TRUSTED_ORIGINS = ["http://localhost:3000", "http://127.0.0.1:3000"]  # post 요청

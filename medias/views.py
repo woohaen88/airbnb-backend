@@ -20,7 +20,6 @@ class PhotoDetailView(DestroyModelMixin, GenericViewSet):
     authentication_classes = [SimpleJWTAuthentication]
     permission_classes = [IsAuthenticated]
 
-
     def destroy(self, request, *args, **kwargs):
         photo = self.get_object()
         self.perform_destroy(photo)
