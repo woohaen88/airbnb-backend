@@ -96,9 +96,7 @@ class Rooms(
     GenericViewSet,
 ):
     queryset = Room.objects.all()
-
     serializer_class = RoomDetailSerializer
-    authentication_classes = [SimpleJWTAuthentication]
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get_serializer_class(self):
@@ -152,7 +150,7 @@ class RoomDetail(
     GenericViewSet,
 ):
     permission_classes = [IsAuthenticatedOrReadOnly]
-    authentication_classes = [SimpleJWTAuthentication]
+
     lookup_field = "id"
     lookup_url_kwarg = "room_id"
     queryset = Room.objects.all()
@@ -212,7 +210,7 @@ class RoomReviews(
     GenericViewSet,
 ):
     permission_classes = [IsAuthenticatedOrReadOnly]
-    authentication_classes = [SimpleJWTAuthentication]
+
     queryset = Room.objects.all()
     serializer_class = ReviewSerializer
     lookup_field = "id"
@@ -251,7 +249,7 @@ class RoomReviews(
 
 class RoomPhotos(CreateModelMixin, GenericViewSet):
     permission_classes = [IsAuthenticated]
-    authentication_classes = [SimpleJWTAuthentication]
+
     queryset = Room.objects.all()
     serializer_class = PhotoSerializer
     lookup_field = "id"
@@ -285,7 +283,6 @@ class RoomBookingView(
     lookup_url_kwarg = "room_id"
 
     permission_classes = [IsAuthenticatedOrReadOnly]
-    authentication_classes = [SimpleJWTAuthentication]
 
     def get_serializer_class(self):
         if self.action == "create":

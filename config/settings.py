@@ -146,7 +146,7 @@ AUTH_USER_MODEL = "users.User"
 REST_FRAMEWORK = {
     # rest framework가 user를 찾는 방법이 들어있는 list
     "DEFAULT_AUTHENTICATION_CLASSES": [
-        "config.authentication.SimpleJWTAuthentication",
+        # "config.authentication.SimpleJWTAuthentication",
         "rest_framework.authentication.SessionAuthentication",
         "rest_framework.authentication.BasicAuthentication",
     ],

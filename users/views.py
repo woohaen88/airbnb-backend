@@ -1,5 +1,6 @@
+from pprint import pprint
 import requests
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model, logout
 from django.contrib.auth import login
 from rest_framework import mixins
 from rest_framework import status
@@ -19,7 +20,7 @@ from rest_framework_simplejwt.views import (
 )
 
 from common.shortcut import get_object_or_404
-from config.authentication import SimpleJWTAuthentication
+
 from users import serializers
 from users.serializers import UserSerializer
 
@@ -76,35 +77,16 @@ class LoginView(mixins.CreateModelMixin, viewsets.GenericViewSet):
         user = get_object_or_404(get_user_model(), email=email)
         if not user.check_password(password):
             raise AuthenticationFailed
-
         login(request, user)
 
-        token = self.get_serializer_class().get_token(user)
-        refresh_token = str(token)  # refresh 토큰 문자열화
-        access_token = str(token.access_token)  # access 토큰 문자열화
         response = Response(
             {
                 "user": serializers.TinyUserSerializer(user).data,
                 "message": "login success",
-                "jwt_token": {
-                    "access_token": access_token,
-                    "refresh_token": refresh_token,
-                },
             },
             status=status.HTTP_200_OK,
         )
-        response.set_cookie(
-            "access_token",
-            access_token,
-            httponly=True,
-            secure=False,
-        )
-        response.set_cookie(
-            "refresh_token",
-            refresh_token,
-            httponly=True,
-            secure=False,
-        )
+
         return response
 
 
@@ -112,14 +94,12 @@ class LogoutView(mixins.CreateModelMixin, viewsets.GenericViewSet):
     serializer_class = serializers.UserLogoutSerializer
     queryset = get_user_model().objects.all()
     permission_classes = [IsAuthenticated]
-    authentication_classes = [SimpleJWTAuthentication]
 
     def create(self, request, *args, **kwargs):
+        logout(request)
         response = Response(
             {"message": "Logout success"}, status=status.HTTP_202_ACCEPTED
         )
-        response.delete_cookie("access_token")
-        response.delete_cookie("refresh_token")
         return response
 
 
@@ -131,7 +111,6 @@ class UserMeView(
     serializer_class = serializers.PrivateUserSerializer
     queryset = get_user_model().objects.all()
     permission_classes = [IsAuthenticated]
-    authentication_classes = [SimpleJWTAuthentication]
 
     def get_queryset(self):
         return self.request.user
@@ -162,7 +141,6 @@ class UserChangePasswordView(
     serializer_class = serializers.PasswordChangeSerializer
 
     permission_classes = [IsAuthenticated]
-    AuthenticationFailed = [SimpleJWTAuthentication]
 
     def get_queryset(self):
         return self.request.user
@@ -192,6 +170,12 @@ class GithubLogIn(
     queryset = get_user_model().objects.all()
 
     def create(self, request, *args, **kwargs):
+        try:
+            return self.perform_create(request, *args, **kwargs)
+        except Exception:
+            raise ParseError("로그인 인증 실패 했어여!!")
+
+    def perform_create(self, request, *args, **kwargs):
         code = request.data.get("code")
         client_id = "3134f37421010b5af5fe"
         client_secret = "8110fb973f681ad87c0cf8b21f658fb5c931adfb"
@@ -210,8 +194,37 @@ class GithubLogIn(
             },
         )
 
-        print(user_data.json())
-        return Response()
+        user_data = user_data.json()
 
-    def perform_create(self, serializer, **kwargs):
-        return serializer.save(**kwargs)
+        emails_data = requests.get(
+            "https://api.github.com/user/emails",
+            headers={
+                "Authorization": f"Bearer {access_token}",
+                "Accept": "application/json",
+            },
+        )
+
+        emails_data = emails_data.json()
+
+        avatar_url = user_data.get("avatar_url")
+        username = user_data.get("login")
+        email = emails_data[0]["email"]
+
+        try:
+            user = get_user_model().objects.get(email=email)
+            login(request, user)
+
+            response = Response(status=status.HTTP_200_OK)
+
+            return response
+        except Exception:
+            user = get_user_model().objects.create(
+                email=email, username=username, avatar=avatar_url
+            )
+            user.set_unusable_password()
+            user.save()
+            login(request, user)
+
+            response = Response(status=status.HTTP_200_OK)
+
+            return response

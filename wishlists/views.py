@@ -66,7 +66,6 @@ class WishlistDetailView(
     lookup_field = "id"
     lookup_url_kwarg = "wishlist_id"
     permission_classes = [IsAuthenticated]
-    authentication_classes = [SimpleJWTAuthentication]
 
     def get_queryset(self):
         return self.queryset.filter(user=self.request.user)
@@ -104,7 +103,6 @@ class WishlistToggleView(UpdateModelMixin, GenericViewSet):
     lookup_field = "id"
     lookup_url_kwarg = "wishlist_id"
     permission_classes = [IsAuthenticated]
-    authentication_classes = [SimpleJWTAuthentication]
 
     def get_queryset(self):
         return self.queryset.filter(user=self.request.user)

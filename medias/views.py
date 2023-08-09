@@ -17,7 +17,6 @@ class PhotoDetailView(DestroyModelMixin, GenericViewSet):
     serializer_class = PhotoSerializer
     lookup_field = "id"
     lookup_url_kwarg = "photo_id"
-    authentication_classes = [SimpleJWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def destroy(self, request, *args, **kwargs):
