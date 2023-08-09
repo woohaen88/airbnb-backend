@@ -1,3 +1,4 @@
+import requests
 from django.contrib.auth import get_user_model
 from django.contrib.auth import login
 from rest_framework import mixins
@@ -8,7 +9,6 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.serializers import (
     TokenObtainPairSerializer,
 )
@@ -182,3 +182,36 @@ class UserChangePasswordView(
 
     def perform_update(self, serializer):
         return serializer.save()
+
+
+class GithubLogIn(
+    mixins.CreateModelMixin,
+    viewsets.GenericViewSet,
+):
+    serializer_class = serializers.SocialLocalSerializer
+    queryset = get_user_model().objects.all()
+
+    def create(self, request, *args, **kwargs):
+        code = request.data.get("code")
+        client_id = "3134f37421010b5af5fe"
+        client_secret = "8110fb973f681ad87c0cf8b21f658fb5c931adfb"
+        token = requests.post(
+            f"https://github.com/login/oauth/access_token?code={code}&client_id={client_id}&client_secret={client_secret}",
+            headers={"Accept": "application/json"},
+        )
+
+        token = token.json()
+        access_token = token.get("access_token")
+        user_data = requests.get(
+            "https://api.github.com/user",
+            headers={
+                "Authorization": f"Bearer {access_token}",
+                "Accept": "application/json",
+            },
+        )
+
+        print(user_data.json())
+        return Response()
+
+    def perform_create(self, serializer, **kwargs):
+        return serializer.save(**kwargs)

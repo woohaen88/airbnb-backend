@@ -105,3 +105,7 @@ class PasswordChangeSerializer(serializers.ModelSerializer):
         instance.save()
 
         return instance
+
+
+class SocialLocalSerializer(serializers.Serializer):
+    pass

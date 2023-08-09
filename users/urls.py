@@ -45,4 +45,9 @@ urlpatterns = [
         views.UserChangePasswordView.as_view(url_match.update_dict),
         name="change-password",
     ),
+    path(
+        "github/",
+        views.GithubLogIn.as_view(url_match.create_dict),
+        name="github",
+    ),
 ]
